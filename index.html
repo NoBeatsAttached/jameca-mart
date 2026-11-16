@@ -51,6 +51,9 @@ body{font-family:'VT323',ui-monospace,monospace;color:#fff;user-select:none;-web
 #ov h2{margin:calc(var(--u)*4px) 0 0;font-size:calc(var(--u)*11px);font-weight:400;color:#7ff0e0;text-shadow:1px 1px 0 #000;letter-spacing:.5px}
 #ov p{margin:calc(var(--u)*4px) calc(var(--u)*10px) 0;font-size:calc(var(--u)*9px);color:#e9dcff;text-shadow:1px 1px 0 #000}
 #ov .foot{position:absolute;bottom:calc(var(--u)*4px);left:0;right:0}
+#upd{z-index:8;text-align:center;cursor:pointer;background:linear-gradient(180deg,#ffb45a,#e06a00);animation:glow 1.2s ease-in-out infinite}
+@keyframes glow{50%{filter:brightness(1.25)}}
+#ver{position:absolute;right:calc(var(--u)*3px);bottom:calc(var(--u)*2px);font-size:calc(var(--u)*7px);color:#fff8;z-index:3;pointer-events:none}
 #toast{position:absolute;left:50%;top:calc(var(--u)*30px);transform:translateX(-50%);z-index:9;white-space:nowrap}
 #pad{flex:1;width:100%;max-width:440px;min-height:180px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:6px;padding:4px 18px 16px}
 #dpad{width:132px;height:132px;position:relative;touch-action:none}
@@ -73,7 +76,7 @@ body{font-family:'VT323',ui-monospace,monospace;color:#fff;user-select:none;-web
 .btn.on,.pill.on{transform:translateY(3px) scale(.95);filter:brightness(1.2);box-shadow:0 1px 0 #0008}
 .pill.on{transform:rotate(-10deg) translateY(3px)}
 button:focus-visible{outline:2px solid #ffe36b;outline-offset:2px}
-@media (prefers-reduced-motion:reduce){#dlg .more{animation:none}}
+@media (prefers-reduced-motion:reduce){#dlg .more,#upd{animation:none}}
 </style>
 </head>
 <body>
@@ -89,6 +92,8 @@ button:focus-visible{outline:2px solid #ffe36b;outline-offset:2px}
       <div id="dlg" class="win" hidden></div>
       <div id="list" class="win" hidden></div>
       <div id="toast" class="win" hidden></div>
+      <div id="upd" class="win" hidden>NEW UPDATE - TAP</div>
+      <div id="ver"></div>
     </div>
     <div id="logo">JAMECA<span>-</span>MART</div>
   </div>
@@ -100,6 +105,7 @@ button:focus-visible{outline:2px solid #ffe36b;outline-offset:2px}
 </div>
 <script>
 {
+const VERSION='2';
 const $=id=>document.getElementById(id);
 const cv=$('cv'),cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;
 const msgEl=$('msg'),dlgEl=$('dlg'),listEl=$('list'),ewin=$('ewin'),swin=$('swin'),hud=$('hud'),ov=$('ov'),toastEl=$('toast');
@@ -112,7 +118,7 @@ const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function fit(){const padH=190;let W=Math.min(innerWidth-28,460,(innerHeight-padH-56)*0.75);W=Math.max(180,W);document.documentElement.style.setProperty('--u',(W/192).toFixed(4))}
 addEventListener('resize',fit);fit();
 const pos=(el,[x,y,w,h])=>{el.style.left=`calc(var(--u)*${x}px)`;el.style.top=`calc(var(--u)*${y}px)`;el.style.width=w?`calc(var(--u)*${w}px)`:'auto';el.style.height=h?`calc(var(--u)*${h}px)`:'auto'};
-pos(msgEl,[4,4,184]);pos(dlgEl,[4,192,184,60]);pos(ewin,[2,152,78,100]);pos(swin,[82,152,108,100]);pos(hud,[3,236]);
+pos(msgEl,[4,4,184]);pos($('upd'),[26,4,140]);pos(dlgEl,[4,192,184,60]);pos(ewin,[2,152,78,100]);pos(swin,[82,152,108,100]);pos(hud,[3,236]);
 
 /* ---------- data ---------- */
 const HOURS=['10:00 PM','11:00 PM','12:00 AM','1:00 AM','2:00 AM','3:00 AM','4:00 AM','5:00 AM','6:00 AM'];
@@ -295,9 +301,9 @@ function drawWorld(now){cx.drawImage(worldLayer,0,0);const blink=Math.floor(now/
 function hudText(){hud.textContent=`${HOURS[P.hour]}  LV${P.lv}  HP ${P.hp}/${P.mhp}  MP ${P.mp}`}
 
 /* ---------- world menu ---------- */
-function openMenu(){SFX.ok();openList({box:[112,22,76,96],title:'MENU',items:[{label:'ITEMS'},{label:'STATUS'},{label:'SAVE'},{label:'MUSIC',right:musicOn?'ON':'OFF'},{label:'CLOSE'}],back:closeList,pick:i=>{
+function openMenu(){SFX.ok();openList({box:[112,22,76,96],title:'MENU',items:[{label:'ITEMS'},{label:'STATUS'},{label:'SAVE'},{label:'MUSIC',right:musicOn?'ON':'OFF'},{label:'UPDATE',right:newVer?'NEW':''},{label:'CLOSE'}],back:closeList,pick:i=>{
  if(i===0)fieldItems();else if(i===1){closeList();const nx=XPT[P.lv+1];dialog(`JAMEKAS - LV ${P.lv}<br>HP ${P.hp}/${P.mhp}   MP ${P.mp}/${P.mmp}<br>ATK ${P.atk}   DEF ${P.def}<br>XP ${P.xp}${nx?' / next '+nx:''}   CASH $${P.cash}`)}
- else if(i===2){closeList();save();dialog('Shift saved.')}else if(i===3){toggleMusic();openMenu()}else closeList()}})}
+ else if(i===2){closeList();save();dialog('Shift saved.')}else if(i===3){toggleMusic();openMenu()}else if(i===4){closeList();if(newVer)doUpdate();else checkUpdate(true)}else closeList()}})}
 function invItems(inBattle){return Object.keys(IT).filter(k=>P.inv[k]>0).map(k=>({k,label:IT[k].n,right:'x'+P.inv[k],dis:!inBattle&&IT[k].bat}))}
 function fieldItems(){const items=invItems(false);if(!items.length){closeList();dialog('No items. Hit the shelves.');return}openList({box:[4,22,184,120],title:'ITEMS',items,back:openMenu,hover:i=>{toast(IT[items[i].k].d)},pick:(i,it)=>{const m=useHeal(it.k);SFX.heal();upd();closeList();dialog(m)}})}
 function useHeal(k){const it=IT[k];P.inv[k]--;let s=[];if(it.hp){const h=Math.min(it.hp,P.mhp-P.hp);P.hp+=h;s.push(`+${h} HP`)}if(it.mp){const m=Math.min(it.mp,P.mmp-P.mp);P.mp+=m;s.push(`+${m} MP`)}return `${it.n}: ${s.join(', ')}`}
@@ -372,6 +378,15 @@ function toTitle(){scene='title';B=null;hud.hidden=true;msgEl.hidden=true;ewin.h
  ov.innerHTML=`<h1>JAMEKAS</h1><h2>GRAVEYARD SHIFT AT JAMECA-MART</h2><p>${gpBlocked?'Controller blocked in this viewer. Open the page in your browser.':'Bluetooth controller? Pair it, then press any button.'}</p>`;
  playSong(WORLD);openList({box:[56,164,80],items:[{label:'NEW SHIFT'},{label:'CONTINUE',dis:!has}],i:has?1:0,pick:i=>{closeList();if(i===0)newGame();else retry()}})}
 function newGame(){P=newP();PL.x=PL.tx=9;PL.y=PL.ty=10;PL.dir='up';PL.moving=false;save();ov.innerHTML='';enterWorld(INTRO)}
+
+/* ---------- in-app updates (no manual refresh) ---------- */
+let newVer=null;
+async function checkUpdate(manual){try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;const j=await r.json();if(String(j.v)!==VERSION){newVer=String(j.v);$('upd').hidden=false;if(manual)doUpdate()}else if(manual)toast('UP TO DATE (v'+VERSION+')')}catch(e){if(manual)toast("CAN'T CHECK FOR UPDATES HERE")}}
+function doUpdate(){if(scene==='battle'||scene==='trans'){toast('FINISH THE FIGHT FIRST');return}if(scene==='world'&&P)save();toast('UPDATING...');setTimeout(()=>{const u=location.pathname+'?v='+encodeURIComponent(newVer||Date.now())+location.hash;try{location.replace(u)}catch(e){location.reload()}},300)}
+$('upd').addEventListener('pointerdown',e=>{e.stopPropagation();doUpdate()});
+$('ver').textContent='v'+VERSION;
+setTimeout(()=>checkUpdate(false),1500);setInterval(()=>checkUpdate(false),90000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdate(false)});
 
 /* ---------- loop ---------- */
 let last=performance.now();

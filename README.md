@@ -14,3 +14,6 @@ Plays in your phone's browser. Open `index.html`, or turn on GitHub Pages (Setti
 - Walk the store. Shelves, coolers, slushie machine, coffee and the hot dog roller restock every hour. Sparkles show what's ready.
 - Register = save. START = menu (items, status, save, music).
 - Every fight you win moves the clock an hour. Level up to unlock skills: Mop Slap, Wet Floor, Hot Coffee, Price Check, Slow Jam, Boombox Blast, Call Manager.
+
+## Updates
+No refreshing needed. The game checks `version.json` every 90 seconds and whenever you come back to the tab. When a new build is pushed, an orange **NEW UPDATE - TAP** banner shows up. Tap it and the game saves and reloads to the new version. You can also check from START → UPDATE. Every build bumps `VERSION` in `index.html` and `version.json` together.
