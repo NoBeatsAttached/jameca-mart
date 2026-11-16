@@ -1,7 +1,16 @@
 # JAMEKAS: Graveyard Shift
 
-A Final Fantasy IV–style turn-based RPG set inside JAMECA-MART, a corner store in 1994 South Central LA.
-You play Jamekas, the night clerk. Hold it down from 10 PM to 6 AM while the night crew walks in one after another, then take on Big Money Marcus.
+A Final Fantasy IV–style turn-based RPG set inside JAMECA-MART, a corner store on Florence Ave, South Central LA, 1994.
+You play Jamekas, the night clerk. Five graveyard shifts, Monday to Friday. Somebody is paying crews to run every store off the block, and you're going to find out who.
+
+## Story
+1. **MONDAY - Clocking In.** Marcus's crew. Boss: Big Money Marcus.
+2. **TUESDAY - New Hire.** Keisha joins the party. Boss: Lowrider Lou.
+3. **WEDNESDAY - Lights Out.** Power's cut, so it's flashlight only. Boss: Deacon.
+4. **THURSDAY - The Collector.** Men in suits. Boss: The Collector.
+5. **FRIDAY - Last Call.** Final boss: Vance Sinclair (two phases).
+
+Between nights: a story scene plus the Swap Meet (weapons, armor and snacks for both characters). Level carries over. New Game+ after the credits.
 
 Plays in your phone's browser. Open `index.html`, or turn on GitHub Pages (Settings → Pages → Deploy from branch → `main` / root).
 
