@@ -128,7 +128,7 @@ const EN={
  jerome:{n:'Jheri Curl Jerome',sh:'JEROME',hp:38,atk:10,def:3,xp:32,cash:15,steal:1,mv:[['Activator splash',1.15,2],['Backhand',1,2]],pal:{c:'#0c0a0a',C:'#6a5868',s:'#5a3322',j:'#2e6d4e',J:'#1f4a35',t:'#efefef',g:'#e6b422',p:'#2e6d4e',b:'#f4f4f4'},ov:{1:"....kkkkkkk.....",2:"...kcCcCcCck....",3:"...kcCcCcCcCk...",4:"...kcssssssk...."}},
  loc:{n:'Lil Loc',sh:'LIL LOC',hp:30,atk:8,def:2,xp:24,cash:8,twice:1,mv:[['Quick jab',1,1]],pal:{c:'#151515',s:'#a06a46',j:'#1b1b1f',J:'#000',t:'#2c2c33',g:'#c8c8d0',p:'#8d7e5a',b:'#2a2a2a'}},
  fred:{n:'Flannel Freddie',sh:'FREDDIE',hp:72,atk:13,def:6,xp:45,cash:18,mv:[['Bear hug',1.3,1],['Headbutt',1.1,2]],pal:{c:'#1a1a1a',s:'#4a2c1e',j:['#6a6a78','#2a2a33'],J:['#4a4a55','#1a1a22'],t:'#eee',g:'#eee',p:'#1f2433',b:'#111'}},
- marcus:{n:'Big Money Marcus',sh:'MARCUS',hp:520,atk:24,def:12,xp:0,cash:300,sc:3,mv:[['Gold chain swing',1.2,3],['Hydraulic stomp',1.8,1]],pal:{c:'#f3efe2',s:'#5a3322',j:'#f3efe2',J:'#c9c3b0',t:'#7a1fa0',g:'#ffd23f',p:'#f3efe2',b:'#7a1fa0'},ov:{5:"....kkkkkkkk....",7:"....kssssssk...."}}
+ marcus:{n:'Big Money Marcus',sh:'MARCUS',hp:380,atk:19,def:9,xp:0,cash:300,sc:3,mv:[['Gold chain swing',1.15,3],['Hydraulic stomp',1.5,1]],pal:{c:'#f3efe2',s:'#5a3322',j:'#f3efe2',J:'#c9c3b0',t:'#7a1fa0',g:'#ffd23f',p:'#f3efe2',b:'#7a1fa0'},ov:{5:"....kkkkkkkk....",7:"....kssssssk...."}}
 };
 const WAVES=[[['pete']],[['pete','pete'],['loc']],[['steve'],['jerome']],[['loc','pete'],['jerome','pete']],[['steve','jerome'],['fred']],[['fred','loc'],['steve','steve']],[['fred','steve','jerome'],['fred','loc','pete']]];
 const MAP=["WWWWWWWWWWWW","FFFFFFFFQQKK","............",".aa.bb.cc...",".aa.bb.cc...","............",".dd.ee.ff...",".dd.ee.ff...","............",".......XXRXX",".......X...H","............","NNNDDNNNNNNN","oooooooooooo","oooooooooooo","oooooooooooo"];
@@ -284,7 +284,7 @@ const walk=(x,y)=>y>=0&&y<12&&x>=0&&x<12&&MAP[y][x]==='.';
 function enterWorld(lines){scene='world';B=null;closeList();msgEl.hidden=true;ewin.hidden=swin.hidden=true;ov.innerHTML='';hud.hidden=false;playSong(WORLD);upd();if(lines)dialog(lines)}
 function updWorld(dt){if(DQ||L)return;if(PL.moving){PL.t+=dt/.15;if(PL.t>=1){PL.x=PL.tx;PL.y=PL.ty;PL.moving=false;PL.t=0;onStep()}}if(!PL.moving&&!DQ&&scene==='world'){const d=curDir();if(d){PL.dir=d;const[dx,dy]=DV[d];if(walk(PL.x+dx,PL.y+dy)){PL.tx=PL.x+dx;PL.ty=PL.y+dy;PL.t=0;PL.moving=true}}}}
 function onStep(){P.steps--;if(P.steps<=0){P.steps=rnd(9,17);encounter()}}
-function encounter(){stack.length=0;SFX.chime();if(P.hour>=7){dialog(BOSSIN,()=>{SFX.enc();scene='trans';transT=0;transBoss=true})}else{SFX.enc();scene='trans';transT=0;transBoss=false}}
+function encounter(){stack.length=0;SFX.chime();if(P.hour>=7){dialog(BOSSIN.concat('Jamekas slams a fresh coffee. HP and MP fully restored.'),()=>{P.hp=P.mhp;P.mp=P.mmp;upd();SFX.enc();scene='trans';transT=0;transBoss=true})}else{SFX.enc();scene='trans';transT=0;transBoss=false}}
 let transBoss=false;
 function interact(){const[dx,dy]=DV[PL.dir],x=PL.x+dx,y=PL.y+dy,ch=(MAP[y]||'')[x];if(!ch)return;const src=SRC[ch];
  if(src){if(P.taken[ch]===P.hour){dialog('Already grabbed from here. Restocks next hour.');return}if(src.i==='coffee'){P.taken[ch]=P.hour;P.mp=Math.min(P.mmp,P.mp+10);SFX.heal();upd();dialog('Burnt coffee. +10 MP. Perfect.');return}
@@ -348,15 +348,15 @@ async function enemyTurns(){for(const e of B.en){if(e.dead||B.ended)continue;
  for(let n=0;n<(e.twice?2:1);n++){await enemyAct(e);if(P.hp<=0)return}}}
 function wpick(mv){const tot=mv.reduce((s,m)=>s+m[2],0);let r=Math.random()*tot;for(const m of mv){r-=m[2];if(r<0)return m}return mv[0]}
 async function enemyAct(e){
- if(e.id==='marcus'){if(alive().length<3&&B.summons<2&&Math.random()<.28){B.summons++;await say('Big Money Marcus whistles for backup!',900);const ne=mkEnemy('pete',7),used=alive().map(x=>x.x),s=BSLOTS.slice(1).find(sl=>!used.includes(sl[0]))||BSLOTS[1];ne.x=s[0];ne.y=s[1];B.en.push(ne);SFX.chime();upd();await say('Pager Pete ran in!',800);return}
-  if(e.hp<e.mhp*.4&&Math.random()<.25){const h=60;e.hp=Math.min(e.mhp,e.hp+h);pop(e.x+e.w/2,e.y+20,'+'+h,'#7cff8a');SFX.heal();await say('Marcus counts his money. Feels better.',1000);return}}
+ if(e.id==='marcus'){if(alive().length<3&&B.summons<1&&Math.random()<.2){B.summons++;await say('Big Money Marcus whistles for backup!',900);const ne=mkEnemy('pete',7),used=alive().map(x=>x.x),s=BSLOTS.slice(1).find(sl=>!used.includes(sl[0]))||BSLOTS[1];ne.x=s[0];ne.y=s[1];B.en.push(ne);SFX.chime();upd();await say('Pager Pete ran in!',800);return}
+  if(e.hp<e.mhp*.4&&(e.heals||0)<2&&Math.random()<.25){e.heals=(e.heals||0)+1;const h=40;e.hp=Math.min(e.mhp,e.hp+h);pop(e.x+e.w/2,e.y+20,'+'+h,'#7cff8a');SFX.heal();await say('Marcus counts his money. Feels better.',1000);return}}
  if(e.steal&&Math.random()<.35){const ks=Object.keys(P.inv).filter(k=>P.inv[k]>0);if(ks.length){const k=pick(ks);P.inv[k]--;e.flash=.2;await say(`${e.n} swiped your ${IT[k].n}!`,1000);return}}
  const m=wpick(e.mv);await say(`${e.n}: ${m[0]}!`,650);e.off=10;await wait(140);let d=dmgCalc(e.atk,m[1],P.def);if(B.defending)d=Math.ceil(d/2);P.hp=Math.max(0,P.hp-d);B.jamFlash=.3;pop(160,94,d,'#fff');SFX.hurt();if(m[1]>=1.6)B.shake=.4;upd();await wait(450)}
 async function victory(){B.ended=true;await wait(500);song=null;SFX.win();const xp=B.en.reduce((s,e)=>s+e.xp,0),cash=B.en.reduce((s,e)=>s+e.cash,0);P.cash+=cash;
  if(B.boss){await say(`Big Money Marcus is DONE. +$${cash}`,1800);return ending()}
  P.xp+=xp;await say(`Victory! +${xp} XP  +$${cash}`,1500);
  while(XPT[P.lv+1]&&P.xp>=XPT[P.lv+1]){P.lv++;Object.assign(P,stats(P.lv));P.hp=P.mhp;P.mp=P.mmp;SFX.lvl();upd();await say(`LEVEL UP! Jamekas is LV ${P.lv}. HP/MP refilled.`,1500);const s=SKILLS.find(x=>x.lv===P.lv);if(s)await say(`Learned ${s.n}!`,1300)}
- P.hour++;P.steps=P.hour>=7?rnd(3,5):rnd(9,17);save();enterWorld([`${HOURS[P.hour]}.`,P.hour>=7?'The street goes quiet. Too quiet. Somebody big is on the way...':FLAVOR[(P.hour-1)%FLAVOR.length]])}
+ P.hour++;P.steps=P.hour>=7?rnd(12,16):rnd(9,17);save();enterWorld([`${HOURS[P.hour]}.`,P.hour>=7?'The street goes quiet. Too quiet. Somebody big is on the way... stock up on snacks.':FLAVOR[(P.hour-1)%FLAVOR.length]])}
 async function lose(){B.ended=true;song=null;SFX.bad();await say('Jamekas got jumped...',1600);msgEl.hidden=true;ewin.hidden=swin.hidden=true;scene='gameover';ov.innerHTML='<h1 style="color:#ff5f7a">GOT JUMPED</h1><h2>The night crew got the best of you.</h2><p>Run it back from your last save with full HP and MP.</p>';openList({box:[52,186,88,44],items:[{label:'RUN IT BACK'},{label:'TITLE'}],pick:i=>{closeList();if(i===0)retry();else toTitle()}})}
 function retry(){const s=loadSave();if(s){P=s.P;PL.x=PL.tx=s.x;PL.y=PL.ty=s.y}else{P=newP();PL.x=PL.tx=9;PL.y=PL.ty=10}P.hp=P.mhp;P.mp=P.mmp;P.steps=rnd(9,17);enterWorld([`${HOURS[P.hour]}. Back on the clock.`])}
 function ending(){B.ended=true;P.hour=8;scene='ending';msgEl.hidden=true;ewin.hidden=swin.hidden=true;try{localStorage.removeItem(SAVEKEY)}catch(e){}playSong(WORLD);
