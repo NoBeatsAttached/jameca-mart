@@ -10,7 +10,16 @@ You play Jamekas, the night clerk. Five graveyard shifts, Monday to Friday. Some
 4. **THURSDAY - The Collector.** Men in suits. Boss: The Collector.
 5. **FRIDAY - Last Call.** Final boss: Vance Sinclair (two phases).
 
-Between nights: a story scene plus the Swap Meet (weapons, armor and snacks for both characters). Level carries over. New Game+ after the credits.
+## Explore 90s LA
+Days are free roam. Nights are your shift, but you can step outside.
+- **Florence Ave**: Walt's porch, Smitty's Cuts (boarded up), Benny's Pawn, Suds Laundry (boarded up), Tia Rosa's taco truck, the record store, the bus stop, and the park
+- **Parking lot**: pumps, payphone, dumpster, a lowrider
+- **Back alley**: fights day and night, crates to loot
+- **Swap Meet** (take the bus): Uncle Ray's gear, Auntie Pearl's snacks, DJ Flex
+- **Florence Park**: basketball court, lowrider show, BBQ
+- **Benny's Pawn**: the SP-1200, $1500. Buy it to unlock Sample Flip and change the ending.
+
+Each day has story objectives. Talk to Mr. Dee at the register to clock in. Side quest: clear the alley crew 3 times for Tia Rosa. Level carries over. New Game+ after the credits.
 
 Plays in your phone's browser. Open `index.html`, or turn on GitHub Pages (Settings → Pages → Deploy from branch → `main` / root).
 
