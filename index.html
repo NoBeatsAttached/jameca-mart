@@ -107,7 +107,7 @@ button:focus-visible{outline:2px solid #ffe36b;outline-offset:2px}
 </div>
 <script>
 {
-const VERSION='5';
+const VERSION='6';
 const $=id=>document.getElementById(id);
 const cv=$('cv'),cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;
 const msgEl=$('msg'),dlgEl=$('dlg'),listEl=$('list'),ewin=$('ewin'),swin=$('swin'),hud=$('hud'),ov=$('ov'),toastEl=$('toast');
@@ -368,8 +368,8 @@ const mGain=()=>musicOn?(musicVol/10)*.6:0,sGain=()=>(sfxVol/10)*.9;
 function applyVol(){if(MG)MG.gain.value=mGain();if(SG)SG.gain.value=sGain();try{localStorage.setItem('jm-mvol',musicVol);localStorage.setItem('jm-svol',sfxVol)}catch(e){}}
 /* custom music: drop files in /music with these names and they replace the chiptune for that scene */
 const TRACKS={WORLD:'music/world.mp3',DARKS:'music/blackout.mp3',BATTLE:'music/battle.mp3',BOSS:'music/boss.mp3',TITLE:'music/title.mp3'};
-const fileOK={};
-Object.values(TRACKS).forEach(f=>{fetch(f,{method:'HEAD',cache:'no-store'}).then(r=>{fileOK[f]=r.ok&&!/text\/html/.test(r.headers.get('content-type')||'')}).catch(()=>{fileOK[f]=false})});
+const fileOK={},fileChk={};
+Object.values(TRACKS).forEach(f=>{fileChk[f]=fetch(f,{method:'HEAD',cache:'no-store'}).then(r=>{fileOK[f]=r.ok&&!/text\/html/.test(r.headers.get('content-type')||'')}).catch(()=>{fileOK[f]=false})});
 try{musicOn=localStorage.getItem('jm-music')!=='0'}catch(e){}
 const mtof=m=>440*Math.pow(2,(m-69)/12);
 function initAudio(){if(AC)return;try{AC=new(window.AudioContext||window.webkitAudioContext)();const M=AC.createGain();M.gain.value=.55;M.connect(AC.destination);MG=AC.createGain();MG.gain.value=mGain();MG.connect(M);SG=AC.createGain();SG.gain.value=sGain();SG.connect(M);NB=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=NB.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;playSong(sceneSong())}catch(e){AC=null}}
@@ -385,7 +385,7 @@ WORLD.file=TRACKS.WORLD;DARKS.file=TRACKS.DARKS;BATTLE.file=TRACKS.BATTLE;BOSS.f
 function playEv(e,t,sd){const d=e.l*sd;switch(e.k){case 'bass':tone(mtof(e.m),t,d*.9,'triangle',.32,MG);tone(mtof(e.m),t,d*.6,'square',.035,MG);break;case 'pad':tone(mtof(e.m),t,d,'triangle',.035,MG);break;case 'lead':lead(mtof(e.m),t,d);break;case 'sq':tone(mtof(e.m),t,d*.85,'square',.045,MG);break;case 'lead2':tone(mtof(e.m),t,d*.9,'square',.06,MG);break;case 'kick':tone(140,t,.2,'sine',.55,MG,38);break;case 'snare':noise(t,.13,.22,MG,1400);tone(190,t,.08,'triangle',.12,MG);break;case 'hat':noise(t,.03,.06,MG,7000)}}
 function stopTrack(){if(trackEl){try{trackEl.pause()}catch(e){}trackEl=null}fileOn=false}
 function playSong(s){if(!AC)return;if(s===song)return;song=s;step=0;nextT=AC.currentTime+.06;stopTrack();
- const f=s&&s.file;if(f&&fileOK[f]){const el=new Audio(f);el.loop=true;el.crossOrigin='anonymous';try{const src=AC.createMediaElementSource(el);src.connect(MG)}catch(e){}trackEl=el;fileOn=true;el.play().catch(()=>{if(trackEl===el){trackEl=null;fileOn=false}})}}
+ const f=s&&s.file;if(f&&fileOK[f]===undefined&&fileChk[f]){fileChk[f].then(()=>{if(song===s&&fileOK[f]){song=null;playSong(s)}});}if(f&&fileOK[f]){const el=new Audio(f);el.loop=true;el.crossOrigin='anonymous';try{const src=AC.createMediaElementSource(el);src.connect(MG)}catch(e){}trackEl=el;fileOn=true;el.play().catch(()=>{if(trackEl===el){trackEl=null;fileOn=false}})}}
 setInterval(()=>{if(!AC||!song||fileOn)return;if(nextT<AC.currentTime-.5)nextT=AC.currentTime+.05;const sd=60/song.bpm/4;while(nextT<AC.currentTime+.15){const t=nextT+(step%2?sd*song.swing:0);song.ev[step].forEach(e=>playEv(e,t,sd));step=(step+1)%song.len;nextT+=sd}},25);
 const S=fn=>()=>{if(AC)fn(AC.currentTime)};
 const SFX={move:S(t=>tone(900,t,.035,'square',.05)),ok:S(t=>{tone(660,t,.05,'square',.07);tone(990,t+.05,.07,'square',.07)}),bad:S(t=>tone(140,t,.15,'square',.1)),hit:S(t=>{noise(t,.12,.35,SG,500);tone(220,t,.1,'square',.12,SG,60)}),crit:S(t=>{noise(t,.22,.45,SG,300);tone(440,t,.18,'sawtooth',.12,SG,80)}),hurt:S(t=>{noise(t,.15,.3,SG,250);tone(160,t,.15,'square',.14,SG,50)}),heal:S(t=>[72,76,79,84].forEach((m,i)=>tone(mtof(m),t+i*.06,.12,'triangle',.15))),die:S(t=>tone(600,t,.4,'square',.07,SG,60)),chime:S(t=>{tone(659,t,.5,'sine',.22);tone(523,t+.35,.7,'sine',.22)}),enc:S(t=>{noise(t,.5,.25,SG,2000);tone(800,t,.5,'sawtooth',.06,SG,100)}),win:S(t=>[67,72,76,79,76,79,84].forEach((m,i)=>tone(mtof(m),t+i*.11,i===6?.6:.12,'square',.08))),lvl:S(t=>[72,74,76,77,79,84].forEach((m,i)=>tone(mtof(m),t+i*.07,.15,'triangle',.15))),buy:S(t=>{tone(1320,t,.06,'square',.06);tone(1760,t+.06,.12,'square',.06)})};
