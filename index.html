@@ -107,7 +107,7 @@ button:focus-visible{outline:2px solid #ffe36b;outline-offset:2px}
 </div>
 <script>
 {
-const VERSION='6';
+const VERSION='8';
 const $=id=>document.getElementById(id);
 const cv=$('cv'),cx=cv.getContext('2d');cx.imageSmoothingEnabled=false;
 const msgEl=$('msg'),dlgEl=$('dlg'),listEl=$('list'),ewin=$('ewin'),swin=$('swin'),hud=$('hud'),ov=$('ov'),toastEl=$('toast');
@@ -201,7 +201,7 @@ const EN={
  goon:{n:'Hired Goon',sh:'GOON',f:[1.3,1.1,1.2,1.2,1.2],mv:[['Brass knuckles',1.2,2],['Kick',1,2]],ov:'shades',pal:{c:'#111',s:'#7a4a30',j:'#111',J:'#000',t:'#fff',g:'#111',p:'#111',b:'#111'}},
  bounce:{n:'Bouncer Big Earl',sh:'BIG EARL',f:[1.8,1.2,1.4,1.6,1.4],mv:[['Chokeslam',1.5,1],['Shove',1,2]],pal:{c:'#3a2216',s:'#3a2216',j:'#222',J:'#111',t:'#222',g:'#ffd23f',p:'#222',b:'#111'}},
  sec:{n:'Sinclair Security',sh:'SECURITY',f:[1.4,1.15,1.4,1.4,1.4],mv:[['Nightstick',1.2,2],['Pepper spray',.5,1,'weak']],pal:{c:'#1f2a44',s:'#5a3322',j:'#2a3a5a',J:'#1a2640',t:'#c9c9c9',g:'#ffd23f',p:'#1a2640',b:'#111'}},
- marcus:{n:'Big Money Marcus',sh:'MARCUS',boss:1,f:[4.2,1.05,1.1,6,20],mv:[['Gold chain swing',1.15,3],['Hydraulic stomp',1.5,1]],ov:'shades',summon:['pete',1],heal:2,pal:{c:'#f3efe2',s:'#5a3322',j:'#f3efe2',J:'#c9c3b0',t:'#7a1fa0',g:'#ffd23f',p:'#f3efe2',b:'#7a1fa0'}},
+ marcus:{n:'Big Money Marcus',sh:'MARCUS',boss:1,f:[3,.85,.9,6,20],mv:[['Gold chain swing',1.1,3],['Hydraulic stomp',1.35,1]],ov:'shades',summon:['pete',1],heal:1,pal:{c:'#f3efe2',s:'#5a3322',j:'#f3efe2',J:'#c9c3b0',t:'#7a1fa0',g:'#ffd23f',p:'#f3efe2',b:'#7a1fa0'}},
  lou:{n:'Lowrider Lou',sh:'LOU',boss:1,f:[5,1.1,1.1,7,22],mv:[['Three-wheel motion',.9,2,'all'],['Hydraulic bounce',1.5,2],['Switch hitter',1.1,2]],summon:['bucket',1],heal:1,pal:{c:'#6a1fc4',s:'#7a4a30',j:'#111',J:'#000',t:'#fff',g:'#ffd23f',p:'#c9a06a',b:'#fff'}},
  deacon:{n:'Deacon',sh:'DEACON',boss:1,f:[5.8,1.15,1.3,8,24],mv:[['Fire and brimstone',.95,2,'all'],['Laying on of hands',1.45,2],['Sermon',.5,1,'weak']],summon:['mask',1],heal:2,pal:{c:'#4a2c1e',s:'#4a2c1e',j:'#3a1a2a',J:'#2a1020',t:'#fff',g:'#ffd23f',p:'#2a1020',b:'#111'}},
  collector:{n:'The Collector',sh:'COLLECTOR',boss:1,f:[6.3,1.15,1.35,9,26],mv:[['Collect',1.1,1,'steal'],['Briefcase swing',1.4,2],['Final notice',1,2,'all']],ov:'fedora',summon:['goon',2],heal:1,pal:{c:'#2a2a2a',s:'#8a5a3c',j:['#3a3a3a','#4a4a4a'],J:'#222',t:'#fff',g:'#7a1f1f',p:'#3a3a3a',b:'#000'}},
@@ -399,8 +399,13 @@ let tt;function toast(t){toastEl.textContent=t;toastEl.hidden=false;clearTimeout
 let MAPID='store',scene='title',P=null,B=null,transT=0,transBoss=false;
 const PL={x:9,y:10,tx:9,ty:10,dir:'up',t:0,moving:false};
 const NAME={J:'JAMEKAS',K:'KEISHA'};
-function newP(){return{map:'ave',obj:[],sp:false,rq:0,alleyW:0,night:0,hour:0,fh:0,phase:'day',lv:1,xp:0,cash:0,inv:{hotdog:2,soda:1},taken:{},steps:rnd(7,11),gear:{jw:0,ja:0,kw:0,ka:0},pt:{J:{hp:80,mp:12},K:{hp:70,mp:20}},kei:false,walt:-1,ng:0}}
-function stat(id){const L=P.lv,g=P.gear;return id==='J'?{mhp:80+20*(L-1),mmp:12+4*(L-1),atk:Math.round(12+2.5*(L-1))+GEAR.jw[g.jw][1],def:Math.round(6+1.8*(L-1))+GEAR.ja[g.ja][1]}:{mhp:70+18*(L-1),mmp:20+6*(L-1),atk:Math.round(9+2*(L-1))+GEAR.kw[g.kw][1],def:Math.round(5+1.6*(L-1))+GEAR.ka[g.ka][1]}}
+function newP(){return{loot:[],eq:{J:null,K:null},map:'ave',obj:[],sp:false,rq:0,alleyW:0,night:0,hour:0,fh:0,phase:'day',lv:1,xp:0,cash:0,inv:{hotdog:2,soda:1},taken:{},steps:rnd(7,11),gear:{jw:0,ja:0,kw:0,ka:0},pt:{J:{hp:80,mp:12},K:{hp:70,mp:20}},kei:false,walt:-1,ng:0}}
+/* street weapons: enemies outside come armed and can drop what they're holding */
+const ARMS=[{t:'bat',n:'Louisville Bat',mv:'Bat swing'},{t:'chain',n:'Bike Chain',mv:'Chain whip'},{t:'brick',n:'Brick',mv:'Brick to the dome'},{t:'crow',n:'Rusty Crowbar',mv:'Crowbar swing'},{t:'knife',n:'Switchblade',mv:'Switchblade slash'},{t:'knux',n:'Brass Knuckles',mv:'Brass knuckle hook'},{t:'plank',n:'2x4 w/ Nails',mv:'2x4 swing'},{t:'chucks',n:'Nunchucks',mv:'Nunchuck flurry'}];
+const ARMBASE=[7,13,20,28,36];
+const armOf=id=>{const i=P.eq&&P.eq[id];return i!=null&&P.loot&&P.loot[i]?P.loot[i]:null};
+const wName=id=>{const a=armOf(id);return a?a.n+' +'+a.v:(id==='J'?GEAR.jw[P.gear.jw]:GEAR.kw[P.gear.kw])[0]};
+function stat(id){const L=P.lv,g=P.gear,a=armOf(id);return id==='J'?{mhp:80+20*(L-1),mmp:12+4*(L-1),atk:Math.round(12+2.5*(L-1))+(a?a.v:GEAR.jw[g.jw][1]),def:Math.round(6+1.8*(L-1))+GEAR.ja[g.ja][1]}:{mhp:70+18*(L-1),mmp:20+6*(L-1),atk:Math.round(9+2*(L-1))+(a?a.v:GEAR.kw[g.kw][1]),def:Math.round(5+1.6*(L-1))+GEAR.ka[g.ka][1]}}
 const party=()=>P.kei?['J','K']:['J'];
 function member(id){const s=stat(id);return Object.assign({id,name:NAME[id],hp:Math.min(P.pt[id].hp,s.mhp),mp:Math.min(P.pt[id].mp,s.mmp),ko:false,atkUp:0,atkDn:0,guard:false},s)}
 function fullHeal(){for(const id of ['J','K']){const s=stat(id);P.pt[id]={hp:s.mhp,mp:s.mmp}}}
@@ -544,9 +549,13 @@ function rosaTalk(){if(P.night===3&&!objDone('rosa')){dialog(ROSA_TIP,()=>finish
  if(P.rq===1&&P.alleyW>=3){P.rq=2;P.inv.plate=Math.min(9,(P.inv.plate||0)+3);SFX.lvl();upd();dialog(['TIA ROSA: "My truck is clean for once! Here. Carne asada. On the house."','(Got 3 Carne Asada Plates!)'],tacoShop);return}
  dialog(P.rq===1?`TIA ROSA: "Alley crew still out there. (${P.alleyW||0}/3)"`:'TIA ROSA: "What you want, mijo?"',tacoShop)}
 /* ---------- menus ---------- */
-function openMenu(){SFX.ok();openList({box:[104,22,84,108],title:'MENU',items:[{label:'ITEMS'},{label:'STATUS'},{label:'SAVE'},{label:'SOUND'},{label:'UPDATE',right:newVer?'NEW':''},{label:'CLOSE'}],back:closeList,pick:i=>{
+function openMenu(){SFX.ok();openList({box:[104,14,84,122],title:'MENU',items:[{label:'ITEMS'},{label:'GEAR'},{label:'STATUS'},{label:'SAVE'},{label:'SOUND'},{label:'UPDATE',right:newVer?'NEW':''},{label:'CLOSE'}],back:closeList,pick:i=>{if(i===1){gearMenu();return}if(i>1)i--;
  if(i===0)fieldItems(openMenu);else if(i===1){closeList();showStatus()}else if(i===2){closeList();save();dialog('Shift saved.')}else if(i===3){soundMenu(openMenu)}else if(i===4){closeList();if(newVer)doUpdate();else checkUpdate(true)}else closeList()}})}
-function showStatus(cb){const nx=XPT[P.lv+1];const lines=[`LV ${P.lv}   XP ${P.xp}${nx?' / next '+nx:''}   CASH $${P.cash}`];party().forEach(id=>{const s=stat(id),g=P.gear;lines.push(`${NAME[id]}<br>HP ${P.pt[id].hp}/${s.mhp}  MP ${P.pt[id].mp}/${s.mmp}<br>ATK ${s.atk}  DEF ${s.def}<br>${id==='J'?GEAR.jw[g.jw][0]+' / '+GEAR.ja[g.ja][0]:GEAR.kw[g.kw][0]+' / '+GEAR.ka[g.ka][0]}`)});dialog(lines,cb)}
+function gearMenu(){const ids=party();openList({box:[20,30,152],title:'GEAR. Pick who to equip.',items:ids.map(id=>({id,label:NAME[id],right:wName(id)})),back:openMenu,pick:(i,it)=>armMenu(it.id)})}
+function armMenu(id,keep){P.loot=P.loot||[];P.eq=P.eq||{J:null,K:null};const shop=id==='J'?GEAR.jw[P.gear.jw]:GEAR.kw[P.gear.kw];const other=id==='J'?'K':'J';
+ const items=[{li:null,label:`${shop[0]} +${shop[1]}`,right:P.eq[id]==null?'EQUIPPED':'SHOP'}].concat(P.loot.map((l,i)=>({li:i,label:`${l.n} +${l.v}`,right:P.eq[id]===i?'EQUIPPED':P.eq[other]===i?NAME[other]:''})));
+ openList({box:[4,30,184,150],title:`${NAME[id]} WEAPON. ATK ${stat(id).atk}`,items,i:keep||0,back:gearMenu,pick:(i,it)=>{if(it.li!=null&&P.eq[other]===it.li)P.eq[other]=null;P.eq[id]=it.li;const s=stat(id);P.pt[id].hp=Math.min(P.pt[id].hp,s.mhp);SFX.buy();toast('EQUIPPED '+it.label.toUpperCase());save();upd();armMenu(id,i)}})}
+function showStatus(cb){const nx=XPT[P.lv+1];const lines=[`LV ${P.lv}   XP ${P.xp}${nx?' / next '+nx:''}   CASH $${P.cash}`];party().forEach(id=>{const s=stat(id),g=P.gear;lines.push(`${NAME[id]}<br>HP ${P.pt[id].hp}/${s.mhp}  MP ${P.pt[id].mp}/${s.mmp}<br>ATK ${s.atk}  DEF ${s.def}<br>${wName(id)} / ${id==='J'?GEAR.ja[g.ja][0]:GEAR.ka[g.ka][0]}`)});dialog(lines,cb)}
 function invItems(inBattle){return Object.keys(IT).filter(k=>P.inv[k]>0).map(k=>({k,label:IT[k].n,right:'x'+P.inv[k],dis:!inBattle&&IT[k].bat,why:'Only works in a fight'}))}
 function fieldItems(back){const items=invItems(false);if(!items.length){closeList();dialog('No items. Hit the shelves.');return}openList({box:[4,22,184,120],title:'ITEMS',items,back,hover:i=>{toast(IT[items[i].k].d)},pick:(i,it)=>{const ids=party();if(IT[it.k].party){const msgs=ids.map(id=>{const m=member(id);P.inv[it.k]++;const r=useItem(it.k,m);P.pt[id]={hp:m.hp,mp:m.mp};return r});P.inv[it.k]--;SFX.heal();upd();closeList();dialog(msgs,()=>fieldItems(back));return}const use=id=>{const m=member(id);const msg=useItem(it.k,m);P.pt[id]={hp:m.hp,mp:m.mp};SFX.heal();upd();closeList();dialog(msg,()=>fieldItems(back))};if(ids.length===1)use('J');else openList({box:[60,60,90,44],title:'USE ON',items:ids.map(id=>({label:NAME[id],right:P.pt[id].hp+'HP'})),back:()=>fieldItems(back),pick:j=>use(ids[j])})}})}
 function useItem(k,m){const it=IT[k];P.inv[k]--;const s=[];if(it.hp){const h=Math.min(Math.round(m.mhp*it.hp),m.mhp-m.hp);m.hp+=h;s.push(`+${h} HP`)}if(it.mp){const v=Math.min(Math.round(m.mmp*it.mp),m.mmp-m.mp);m.mp+=v;s.push(`+${v} MP`)}return `${m.name}: ${it.n}. ${s.join(', ')||'Nothing happened.'}`}
@@ -554,14 +563,15 @@ function useItem(k,m){const it=IT[k];P.inv[k]--;const s=[];if(it.hp){const h=Mat
 /* ---------- battle ---------- */
 const SLOTS={1:[[38,86]],2:[[12,80],[60,94]],3:[[6,74],[50,82],[28,98]]},BSLOTS=[[0,58],[58,84],[84,104]];
 function expL(){return 1+.72*(P.night*7.5+P.hour)+P.ng*30}
-function mkEnemy(id){const T=EN[id],Lx=expL(),n=Math.min(P.night,4),mhp=80+20*(Lx-1),pdef=6+1.8*(Lx-1)+[0,4,9,15,22][n];const f=T.f,sc=T.boss?3:2,hp=Math.round(f[0]*(28+11*(Lx-1)));
+function mkEnemy(id){const e=mkEnemy0(id);if(MAPID!=='store'&&!EN[id].boss&&Math.random()<.85){const A=pick(ARMS);e.arm=A;e.atk=Math.round(e.atk*1.2);e.mv.push([A.mv,1.45,2]);e.cash=Math.round(e.cash*1.3)}return e}
+function mkEnemy0(id){const T=EN[id],Lx=expL(),n=Math.min(P.night,4),mhp=80+20*(Lx-1),pdef=6+1.8*(Lx-1)+[0,4,9,15,22][n];const f=T.f,sc=T.boss?3:2,hp=Math.round(f[0]*(28+11*(Lx-1)));
  return{id,n:T.n,sh:T.sh,hp,mhp:hp,atk:Math.round(f[1]*(.5*pdef+.12*mhp)),def:Math.round(f[2]*(2+(Lx-1))),xp:Math.round(f[3]*(6+2.2*Lx)),cash:Math.round(f[4]*(5+2.5*Lx)),mv:T.mv.slice(),T,img:ESP[id][0],wimg:ESP[id][1],w:16*sc,h:24*sc,x:0,y:0,off:0,flash:0,alpha:1,dead:false,burn:0,slip:false,defDown:false,atkDn:0,heals:0}}
 function startBattle(boss){scene='battle';hud.hidden=true;const N=NIGHTS[P.night],grp=boss?N.boss:pick(N.pool);
  B={bg:bgNow(),day:P.phase==='day',en:grp.map(mkEnemy),boss,summons:0,pops:[],shake:0,tg:null,ended:false,phase2:false,cur:null};
  B.en.forEach((e,i)=>{const s=boss?BSLOTS[i]:SLOTS[B.en.length][i];e.x=s[0];e.y=s[1]});
  B.pm=party().map(member);const ppos=B.pm.length>1?[[124,66],[142,96]]:[[136,86]];B.pm.forEach((m,i)=>{m.x=ppos[i][0];m.y=ppos[i][1];m.w=48;m.h=48;m.jx=0;m.flash=0});
  ewin.hidden=swin.hidden=false;playSong(boss?BOSS:BATTLE);upd();
- (async()=>{const names={};B.en.forEach(e=>names[e.n]=(names[e.n]||0)+1);await say(Object.entries(names).map(([n,c])=>c>1?`${n} x${c}`:n).join(' & ')+(boss?' steps up!':' walked in!'),1300);battleLoop()})()}
+ (async()=>{const names={};B.en.forEach(e=>names[e.n]=(names[e.n]||0)+1);await say(Object.entries(names).map(([n,c])=>c>1?`${n} x${c}`:n).join(' & ')+(boss?' steps up!':MAPID==='store'?' walked in!':' rolled up!'),1300);const armed=B.en.filter(e=>e.arm);if(armed.length)await say('They came strapped: '+[...new Set(armed.map(e=>e.arm.n))].join(', ')+'.',1200);battleLoop()})()}
 function say(t,ms=800){msgEl.textContent=t;msgEl.hidden=false;return new Promise(r=>{let tm;const done=()=>{clearTimeout(tm);skipFn=null;r()};tm=setTimeout(done,ms);skipFn=done})}
 function bui(){if(!B||!B.pm)return;ewin.innerHTML=B.en.filter(e=>!e.dead).map(e=>`<div class="${B.tg&&B.tg.list[B.tg.i]===e?'hl':''}">${e.sh}${e.burn?' *':''}</div>`).join('');
  swin.innerHTML=B.pm.map(m=>`<div class="pm${B.cur===m?' cur':''}${m.ko?' ko':''}${B.tg&&B.tg.list[B.tg.i]===m?' tg':''}"><div class="row"><span>${m.name}</span><span class="${!m.ko&&m.hp<m.mhp*.25?'low':''}">${m.ko?'DOWN':m.hp+'/'+m.mhp}</span></div><div class="bar"><i style="width:${m.hp/m.mhp*100}%"></i></div><div class="row"><span>MP ${m.mp}</span><span class="tag">${m.guard?'DEF ':''}${m.atkUp>0?'ATK+ ':''}${m.atkDn>0?'ATK-':''}</span></div></div>`).join('')}
@@ -636,6 +646,7 @@ async function enemyAct(e){const T=e.T;
  upd();await wait(420);for(const p of B.pm)if(p.ko&&p.hp===0&&!p.saidKO){p.saidKO=true;await say(`${p.name} is down!`,750)}}
 function writeBack(){for(const m of B.pm)P.pt[m.id]={hp:m.ko?1:m.hp,mp:m.mp}}
 async function victory(){B.ended=true;await wait(500);song=null;SFX.win();const xp=B.en.reduce((s,e)=>s+e.xp,0),cash=B.en.reduce((s,e)=>s+e.cash,0);P.cash+=cash;P.xp+=xp;writeBack();
+ const ar=B.en.filter(e=>e.arm);if(ar.length&&Math.random()<.45){const A=pick(ar).arm,v=ARMBASE[Math.min(P.night,4)]+P.ng*30+rnd(-2,4);P.loot=P.loot||[];P.eq=P.eq||{J:null,K:null};if(P.loot.length>=12){let w=0;P.loot.forEach((l,i)=>{if(l.v<P.loot[w].v&&P.eq.J!==i&&P.eq.K!==i)w=i});P.loot.splice(w,1);for(const k of['J','K'])if(P.eq[k]!=null&&P.eq[k]>w)P.eq[k]--}P.loot.push({n:A.n,v,t:A.t});await say(`Picked up a ${A.n} (+${v} ATK)! Equip it: START > GEAR.`,1700)}
  await say(`Victory! +${xp} XP  +$${cash}`,1400);let lv0=P.lv;while(XPT[P.lv+1]&&P.xp>=XPT[P.lv+1])P.lv++;
  if(P.lv>lv0){fullHeal();SFX.lvl();upd();await say(`LEVEL UP! LV ${P.lv}. Party fully restored.`,1500);for(const id of party())for(const s of SK[id])if(s.lv>lv0&&s.lv<=P.lv)await say(`${NAME[id]} learned ${s.n}!`,1200)}
  if(B.boss)return nightEnd();
@@ -643,8 +654,17 @@ async function victory(){B.ended=true;await wait(500);song=null;SFX.win();const 
  P.fh++;if(P.fh>=2){P.fh=0;P.hour++;lines=[`${HOURS[P.hour]}. Shelves restocked.`];if(P.hour>=7){lines.push('The street goes quiet. Too quiet. Somebody big is on the way... stock up.');P.steps=rnd(10,14)}}else P.steps=rnd(6,12);save();enterWorld(lines)}
 async function lose(){B.ended=true;song=null;SFX.bad();await say('The party got jumped...',1500);msgEl.hidden=true;ewin.hidden=swin.hidden=true;scene='gameover';ov.innerHTML='<h1 style="color:#ff5f7a">GOT JUMPED</h1><h2>The night crew got the best of you.</h2><p>Run it back from your last save with full HP and MP.</p>';openList({box:[52,186,88],items:[{label:'RUN IT BACK'},{label:'TITLE'}],pick:i=>{closeList();if(i===0)retry();else toTitle()}})}
 function retry(){const s=loadSave();if(!s){newGame();return}P=s.P;MAPID=P.map||'store';PL.x=PL.tx=s.x;PL.y=PL.ty=s.y;PL.moving=false;PL.dir='down';fullHeal();fadeA=1;if(P.phase==='day'){enterWorld([`${NIGHTS[P.night].day}${P.night===0?' EVENING':' MORNING'}. Back at it.`]);return}P.steps=P.hour>=7?rnd(10,14):rnd(7,12);enterWorld([`${NIGHTS[P.night].day}, ${HOURS[P.hour]}. Back on the clock.`])}
+function drawArm(e){const k=e.w/16*1.35,hx=e.x+e.off+14.5*k,hy=e.y+15*k,L=(a,b,c,d,col,w)=>{cx.strokeStyle=col;cx.lineWidth=w*k;cx.beginPath();cx.moveTo(hx+a*k,hy+b*k);cx.lineTo(hx+c*k,hy+d*k);cx.stroke()};cx.save();cx.lineCap='square';
+ switch(e.arm.t){case 'bat':L(0,1,5,-9,'#3a2410',2.6);L(0,1,5,-9,'#c08a4a',1.6);L(3.5,-6,5,-9,'#d8a060',2.2);break;
+ case 'plank':L(0,1,4,-10,'#3a2410',2.6);L(0,1,4,-10,'#b8925a',1.8);cx.fillStyle='#ddd';[[3,-7],[4,-9],[2,-5]].forEach(([a,b])=>cx.fillRect(hx+(a+.8)*k,hy+b*k,1.2*k,.8*k));break;
+ case 'crow':L(0,1,1,-9,'#2a2a30',2.2);L(0,1,1,-9,'#8a8f99',1.2);L(1,-9,3,-9.5,'#8a8f99',1.2);break;
+ case 'chain':cx.fillStyle='#c8c8d0';for(let i=0;i<6;i++)cx.fillRect(hx+(i*.9)*k,hy+(1+i*1.4-(i*i*.18))*k,1.2*k,1.2*k);break;
+ case 'brick':cx.fillStyle='#000';cx.fillRect(hx-.5*k,hy-2.5*k,5*k,3.5*k);cx.fillStyle='#b5442e';cx.fillRect(hx,hy-2*k,4*k,2.5*k);cx.fillStyle='#d8705a';cx.fillRect(hx,hy-2*k,4*k,.6*k);break;
+ case 'knife':L(0,0,0,-1,'#2a2a30',2);L(0,-1,2,-5,'#e8e8f0',1.1);break;
+ case 'knux':cx.fillStyle='#ffd23f';for(let i=0;i<3;i++)cx.fillRect(hx-1*k,hy+(-1+i*1.2)*k,1.2*k,1*k);break;
+ case 'chucks':L(0,0,1,-4,'#2a1a10',1.6);L(1,-4,4,-3,'#c8c8d0',.6);L(4,-3,6,-7,'#2a1a10',1.6);break}cx.restore()}
 function drawBattle(dt){cx.save();if(B.shake>0){B.shake-=dt;cx.translate(rnd(-2,2),rnd(-2,2))}cx.fillStyle='#000';cx.fillRect(-4,-4,200,264);cx.drawImage(B.bg,0,0);
- const ord=B.en.slice().sort((a,b)=>a.y-b.y);for(const e of ord){if(e.dead){e.alpha-=dt*1.6;if(e.alpha<=0)continue}cx.globalAlpha=Math.max(0,e.alpha);cx.fillStyle='rgba(0,0,0,.3)';cx.fillRect(e.x+e.w*.2,e.y+e.h-3,e.w*.6,3);const fl=e.flash>0&&Math.floor(e.flash*30)%2===0;e.flash-=dt;cx.drawImage(fl||e.dead?e.wimg:e.img,Math.round(e.x+e.off),e.y,e.w,e.h);if(e.dead){cx.globalAlpha=Math.max(0,e.alpha-.4);cx.drawImage(e.img,Math.round(e.x),e.y,e.w,e.h)}e.off*=.82;cx.globalAlpha=1}
+ const ord=B.en.slice().sort((a,b)=>a.y-b.y);for(const e of ord){if(e.dead){e.alpha-=dt*1.6;if(e.alpha<=0)continue}cx.globalAlpha=Math.max(0,e.alpha);cx.fillStyle='rgba(0,0,0,.3)';cx.fillRect(e.x+e.w*.2,e.y+e.h-3,e.w*.6,3);const fl=e.flash>0&&Math.floor(e.flash*30)%2===0;e.flash-=dt;cx.drawImage(fl||e.dead?e.wimg:e.img,Math.round(e.x+e.off),e.y,e.w,e.h);if(e.arm&&!e.dead)drawArm(e);if(!e.dead){e.dhp=e.dhp==null?e.hp:e.dhp+(e.hp-e.dhp)*Math.min(1,dt*8);const bw=Math.round(e.w*.8),bx=Math.round(e.x+(e.w-bw)/2),by=Math.max(2,e.y-6),r=e.hp/e.mhp;cx.fillStyle='#000';cx.fillRect(bx-1,by-1,bw+2,5);cx.fillStyle='#3a0d14';cx.fillRect(bx,by,bw,3);cx.fillStyle='#fff';cx.fillRect(bx,by,Math.round(bw*Math.max(0,e.dhp)/e.mhp),3);cx.fillStyle=r>.5?'#4be070':r>.25?'#ffd23f':'#ff4a5a';cx.fillRect(bx,by,Math.round(bw*r),3);if(e.T.boss){cx.font='10px VT323, monospace';cx.textAlign='center';cx.fillStyle='#000';const tx=Math.max(22,bx+bw/2);cx.fillText(e.hp+'/'+e.mhp,tx+1,by-1);cx.fillStyle='#fff';cx.fillText(e.hp+'/'+e.mhp,tx,by-2);cx.textAlign='left'}}if(e.dead){cx.globalAlpha=Math.max(0,e.alpha-.4);cx.drawImage(e.img,Math.round(e.x),e.y,e.w,e.h)}e.off*=.82;cx.globalAlpha=1}
  for(const m of B.pm){m.jx*=.85;const sp=PSPR[m.id];const fl=m.flash>0&&Math.floor(m.flash*30)%2===0;m.flash-=dt;cx.fillStyle='rgba(0,0,0,.3)';cx.fillRect(m.x+10,m.y+45,30,3);if(m.ko){cx.save();cx.globalAlpha=.55;cx.translate(m.x+24,m.y+40);cx.rotate(-Math.PI/2);cx.drawImage(sp[0],-20,-24,48,48);cx.restore()}else cx.drawImage(fl?sp[1]:(m.hp<m.mhp*.25?sp[2]:sp[0]),Math.round(m.x+m.jx),m.y,48,48);if(B.cur===m&&!B.tg){cx.fillStyle='#ffe36b';cx.fillRect(m.x+22,m.y-4+Math.round(Math.sin(performance.now()/150)),5,2)}}
  if(B.tg){const t=B.tg.list[B.tg.i];if(t)cx.drawImage(HAND,Math.round(t.x-10+Math.sin(performance.now()/120)*1.5),Math.round(t.y+t.h*.4))}
  cx.font='14px VT323, monospace';cx.textAlign='center';B.pops=B.pops.filter(p=>p.a<1.1);for(const p of B.pops){p.a+=dt;const y=p.y-Math.min(p.a,.25)*40+(p.a>.25?Math.min(p.a-.25,.1)*30:0);cx.fillStyle='#000';[[-1,0],[1,0],[0,-1],[0,1]].forEach(([a,b])=>cx.fillText(p.t,p.x+a,y+b));cx.fillStyle=p.c;cx.fillText(p.t,p.x,y)}cx.textAlign='left';cx.restore()}
@@ -658,7 +678,7 @@ function nightEnd(){const n=P.night;msgEl.hidden=true;ewin.hidden=swin.hidden=tr
 function gearShop(){const cats=['jw','ja'].concat(P.kei?['kw','ka']:[]);const maxT=Math.min(4,P.night+1);
  openList({box:[4,40,184],title:`UNCLE RAY'S GEAR. You have $${P.cash}`,items:cats.map(c=>({c,label:GEARN[c],right:GEAR[c][P.gear[c]][0]})),back:closeList,pick:(i,it)=>gearTier(it.c,maxT)})}
 function gearTier(c,maxT){const items=GEAR[c].slice(1,maxT+1).map((g,ix)=>{const t=ix+1,own=P.gear[c]>=t;return{t,label:`${g[0]} +${g[1]}`,right:own?(P.gear[c]===t?'EQUIPPED':'OWNED'):'$'+g[2],dis:own||P.cash<g[2],why:own?'Already got it':'Not enough cash'}});
- openList({box:[4,40,184],title:`${GEARN[c]} ($${P.cash}). More tiers unlock each day.`,items,back:gearShop,pick:(i,it)=>{const g=GEAR[c][it.t];P.cash-=g[2];P.gear[c]=it.t;fullHeal();SFX.buy();toast(`EQUIPPED ${g[0].toUpperCase()}`);save();upd();gearTier(c,maxT)}})}
+ openList({box:[4,40,184],title:`${GEARN[c]} ($${P.cash}). More tiers unlock each day.`,items,back:gearShop,pick:(i,it)=>{const g=GEAR[c][it.t];P.cash-=g[2];P.gear[c]=it.t;if(c==='jw'&&P.eq)P.eq.J=null;if(c==='kw'&&P.eq)P.eq.K=null;fullHeal();SFX.buy();toast(`EQUIPPED ${g[0].toUpperCase()}`);save();upd();gearTier(c,maxT)}})}
 function buyList(title,keys,back){const items=keys.map(k=>({k,label:IT[k].n,right:`$${IT[k].c} (x${P.inv[k]||0})`,dis:P.cash<IT[k].c||(P.inv[k]||0)>=9,why:(P.inv[k]||0)>=9?'Pockets full':'Not enough cash'}));
  openList({box:[4,40,184,140],title:`${title} You have $${P.cash}`,items,back,hover:j=>toast(IT[items[j].k].d),pick:(i,it)=>{P.cash-=IT[it.k].c;P.inv[it.k]=(P.inv[it.k]||0)+1;SFX.buy();save();upd();buyList(title,keys,back);L.i=i;renderList()}})}
 const snackShop=()=>buyList('AUNTIE PEARL\'S SNACKS.',['chips','hotdog','burrito','soda','slushie','spray','scratch'],closeList);
